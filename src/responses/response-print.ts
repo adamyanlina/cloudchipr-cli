@@ -22,16 +22,23 @@ export default class ResponsePrint {
     let found = false
     let summaryData = []
     responses.forEach((response) => {
+      const responseWithHeader = {
+        header: '',
+        data: response
+      }
       if (response.count === 0) {
         return
       }
       found = true
       if (option.output === Output.DETAILED || option.output === null) {
-        OutputHelper.text(`${response.items[0].constructor.name.toUpperCase()} - Potential saving opportunities found ⬇️`, 'info')
-        OutputHelper[option.outputFormat](this.responseDecorator.decorate(cloudProvider, [response], { output: Output.DETAILED, showLabels: option.showLabels }))
+        // OutputHelper.text(`${response.items[0].constructor.name.toUpperCase()} - Potential saving opportunities found ⬇️`, 'info')
+        // OutputHelper[option.outputFormat](this.responseDecorator.decorate(cloudProvider, [response], { output: Output.DETAILED, showLabels: option.showLabels }))
+        responseWithHeader.header = `${response.items[0].constructor.name.toUpperCase()} - Potential saving opportunities found`
+        OutputHelper[option.outputFormat](this.responseDecorator.decorate(cloudProvider, [responseWithHeader], { output: Output.DETAILED, showLabels: option.showLabels }))
       }
       if (option.output === Output.SUMMARIZED || option.output === null) {
-        summaryData = [...summaryData, ...this.responseDecorator.decorate(cloudProvider, [response], { output: Output.SUMMARIZED, showLabels: option.showLabels })]
+        // summaryData = [...summaryData, ...this.responseDecorator.decorate(cloudProvider, [response], { output: Output.SUMMARIZED, showLabels: option.showLabels })]
+        summaryData = [...summaryData, ...this.responseDecorator.decorate(cloudProvider, [responseWithHeader], { output: Output.SUMMARIZED, showLabels: option.showLabels })]
       }
     })
     if (summaryData.length > 0) {

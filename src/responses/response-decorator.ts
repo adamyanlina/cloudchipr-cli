@@ -6,10 +6,17 @@ import { DateTimeHelper, NumberConvertHelper, SizeConvertHelper } from '../helpe
 import { ResponseDecoratorInterface } from './response-interface'
 
 export default class ResponseDecorator {
-  decorate (cloudProvider: string, resources: Response<ProviderResource>[], option: ResponseDecoratorInterface): any[] {
+  decorate (cloudProvider: string, resources: { header: string, data: Response<ProviderResource> }[], option: ResponseDecoratorInterface): any[] {
+    resources.map((resource) => {
+      resource.data.items.map((item) => {
+        console.log('item: ', item)
+      })
+    })
+    console.log(`${cloudProvider}RemoveEmptyResourcesAndSort`)
     resources = this[`${cloudProvider}RemoveEmptyResourcesAndSort`](resources)
+    console.log('resources: ', resources)
     let data = []
-    resources.forEach((resource: Response<ProviderResource>) => {
+    resources.forEach((resource: { header: string, data: Response<ProviderResource> }) => {
       data = [...data, ...this.eachItem(cloudProvider, resource, option.output)]
     })
     if (!option.showLabels) {
@@ -18,6 +25,7 @@ export default class ResponseDecorator {
         return d
       })
     }
+    console.log('data: ', data)
     return data
   }
 
@@ -70,7 +78,7 @@ export default class ResponseDecorator {
     }, [])
   }
 
-  private eachItem (cloudProvider: string, resource: Response<ProviderResource>, output: string) {
+  private eachItem (cloudProvider: string, resource: { header: string, data: Response<ProviderResource> }, output: string) {
     switch (output) {
       case Output.DETAILED:
         return this.eachItemDetail(cloudProvider, resource)
@@ -79,15 +87,15 @@ export default class ResponseDecorator {
     }
   }
 
-  private eachItemDetail (cloudProvider:string, resource: Response<ProviderResource>) {
-    return resource.items.map((item: ProviderResource) => this[`${cloudProvider}${item.constructor.name}`](item))
+  private eachItemDetail (cloudProvider:string, resource: { header: string, data: Response<ProviderResource> }) {
+    return resource.data.items.map((item: ProviderResource) => this[`${cloudProvider}${item.constructor.name}`](item))
   }
 
-  private eachItemSummary (cloudProvider:string, resource: Response<ProviderResource>) {
-    const totalPrice = resource.items.map(o => o.pricePerMonth).reduce((a, b) => a !== undefined && b !== undefined ? a + b : 0, 0)
+  private eachItemSummary (cloudProvider:string, resource: { header: string, data: Response<ProviderResource> }) {
+    const totalPrice = resource.data.items.map(o => o.pricePerMonth).reduce((a, b) => a !== undefined && b !== undefined ? a + b : 0, 0)
     return [
       {
-        Service: resource.items[0].constructor.name.toUpperCase(),
+        Service: resource.data.items[0].constructor.name.toUpperCase(),
         'Cost Per Month': this.formatPrice(totalPrice)
       }
     ]
